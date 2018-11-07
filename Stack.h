@@ -5,7 +5,7 @@
 #include <cstring>
 #include <functional>
 #include <iostream>
-#include "../ProtectionDumper.h"
+#include "ProtectionDumper.h"
 
 #ifdef DEBUG
     #define L_CANARY_SIZE sizeof(Stack*)
@@ -68,8 +68,9 @@ private:
 
         for (size_t i = 0; i < size_; ++i)
         {
-            *getElementPointer(i) = Type();
-            *getElementPointer(i) = *that.getElementPointer(i);   
+            //*getElementPointer(i) = std::move(Type());
+            //*getElementPointer(i) = std::move(*that.getElementPointer(i));   
+            new (getElementPointer(i)) Type(*that.getElementPointer(i));
         }
     }
 
@@ -133,6 +134,11 @@ public:
     size_t capacity() const
     {
         return size_;
+    }
+    
+    bool empty() const
+    {
+        return size_ == 0;
     }
 
     bool ok() const
@@ -221,8 +227,9 @@ public:
     {
         for (size_t i = 0; i < size; ++i)
         {
-            *getElementPointer(i) = Type();
-            *getElementPointer(i) = elem;
+            //*getElementPointer(i) = Type();
+            //*getElementPointer(i) = std::move(elem);
+            new (getElementPointer(i)) Type(elem);
         }
 
         makeCanaries();
@@ -319,15 +326,25 @@ public:
         makeCanaries();
         that.bytes_ = nullptr;
     }
-
+    
     void push(const Type& elem)
     {
         FUNCTION_GUARD(Stack<Type>);
         tryToExpand();
         ++size_;
-        //placement new here
-        *getElementPointer(size_ - 1) = Type();
-        *getElementPointer(size_ - 1) = elem;
+        new (getElementPointer(size_ - 1)) Type(elem);
+        #ifdef DEBUG
+            ++size_cpy_;
+            hash_sum_ = calculateHashSum();
+        #endif
+    }
+    
+    void push(Type&& elem)
+    {
+        FUNCTION_GUARD(Stack<Type>);
+        tryToExpand();
+        ++size_;
+        new (getElementPointer(size_ - 1)) Type(std::forward<Type>(elem));
         #ifdef DEBUG
             ++size_cpy_;
             hash_sum_ = calculateHashSum();

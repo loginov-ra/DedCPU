@@ -110,6 +110,22 @@ public:
                 case END:
                     fprintf(disassembled_, "end\n");
                     break;
+                
+                case JMP:
+                    fprintf(disassembled_, "jmp %d\n", readint());
+                    break;
+
+                case JE:
+                    fprintf(disassembled_, "je %d\n", readint());
+                    break;
+
+                case JG:
+                    fprintf(disassembled_, "jg %d\n", readint());
+                    break;
+
+                case JGE:
+                    fprintf(disassembled_, "jge %d\n", readint());
+                    break;
 
                 default:
                     ASSERT(false, "Unknown command presents! Aborting!");
@@ -117,7 +133,6 @@ public:
             }
         }
     }
-
 
     ~Disassembler()
     {

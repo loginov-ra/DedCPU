@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "Stack.h"
+#include "../Stack.h"
 #include "../CommandCodes.h"
 
 #define ASSERT(COND, MSG)                                       \
@@ -98,7 +98,9 @@ public:
         FUNCTION_GUARD(CPU);
         ip_ = 0;
         int new_value = 0;
-        
+        int top = 0, top_snd = 0; 
+        int arg = 0;
+
         while (ip_ < code_size_)
         {
             char cmd_code = readchar();
@@ -133,6 +135,30 @@ public:
 
                 case END:
                     ip_ = code_size_;
+                    break;
+                
+                case JMP:
+                    ip_ = readArgument();
+                    break;
+
+                case JE:
+                    arg = readint();
+                    if (S_POP == S_POP)
+                        ip_ = arg;
+                    break;
+
+                case JG:
+                    arg = readint();
+                    top = S_POP, top_snd = S_POP;
+                    if (top > top_snd)
+                        ip_ = arg;
+                    break;
+
+                case JGE:
+                    arg = readint();
+                    top = S_POP, top_snd = S_POP;
+                    if (top >= top_snd)
+                        ip_ = arg;
                     break;
 
                 default:

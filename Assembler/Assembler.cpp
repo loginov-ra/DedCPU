@@ -18,5 +18,7 @@ int main(int argc, char** argv)
         printf("Errors occured, assembler returned non-zero exit code\n");
     }
 
+    assembler.dump();
+
     return 0; 
 }
