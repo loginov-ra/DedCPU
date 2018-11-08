@@ -249,59 +249,41 @@ public:
 			char argbuf[MAX_ARG_LENGTH] = "";
             char type = 0; 
 
+            #define DEF_CMD(NAME, CODE_S, LONG_S, CODE_B, LONG_B,  LABELS, SHORTS, ACTION) \
+                else if (!strcmp(cmd_name, #NAME))                                 \
+                {                                                                  \
+                    writeChar(CODE_B);                                             \
+                    for (size_t i = 0; i < LONG_B; ++i)                            \
+                    {                                                              \
+                        if (!procArg(true, argbuf, &type, &argval))                \
+                            return 1;                                              \
+                        writeLongArgument(type, argval);                           \
+                    }                                                              \
+                                                                                   \
+                    for (size_t i = 0; i < LABELS; ++i)                            \
+                    {                                                              \
+                        fscanf(source_code_file_, "%s", argbuf);                   \
+                        size_t res = parseArgumentLabel(argbuf, &argval);          \
+                                                                                   \
+                        if (res == WRITTEN_CODE)                                   \
+                            writeInt(argval);                                      \
+                        else if (res == FIXUP_CREATED)                             \
+                            writeInt(0);                                           \
+                        else if (res == UNKNOWN_ARG)                               \
+                            ASSERT(false, "Unsupported argument format");          \
+                    }                                                              \
+                                                                                   \
+                    for (size_t i = 0; i < SHORTS; ++i)                            \
+                    {                                                              \
+                        if (!procArg(false, argbuf, &type, &argval))               \
+                            return 1;                                              \
+                        writeInt(argval);                                          \
+                    }                                                              \
+                } 
+
             if (false);
-            else if (!strcmp(cmd_name, "push"))
-            {
-                if (!procArg(true, argbuf, &type, &argval))
-                    return 1;
-                writeChar(PUSH);
-                writeLongArgument(type, argval);
-            }
-            else if (!strcmp(cmd_name, "pop"))
-            {
-                writeChar(POP);
-            }
-            else if (!strcmp(cmd_name, "add"))
-            {
-                writeChar(ADD);
-            }
-            else if (!strcmp(cmd_name, "mul"))
-            {
-                writeChar(MUL);
-            }
-            else if (!strcmp(cmd_name, "in"))
-            {
-                writeChar(IN);
-            }
-            else if (!strcmp(cmd_name, "out"))
-            {
-                writeChar(OUT);
-            }
-            else if (!strcmp(cmd_name, "end"))
-            {
-                writeChar(END);
-            }
-            else if (!strcmp(cmd_name, "jmp"))
-            {
-                writeChar(JMP);
-                fscanf(source_code_file_, "%s", argbuf);
-                size_t res = parseArgumentLabel(argbuf, &argval);
-
-                switch (res)
-                {
-                    case WRITTEN_CODE:
-                        writeInt(argval);
-                        break;
-                    
-                    case FIXUP_CREATED:
-                        writeInt(0);
-                        break;
-
-                    case UNKNOWN_ARG:
-                        ASSERT(false, "Unsupported argument format");
-                        break;
-                }
-            }
+            #include "../Commands.h"
+            #undef DEF_CMD
             else if (cmd_name[0] == ':')
             {
                 processNewLabel(cmd_name + 1, strlen(cmd_name) - 1);

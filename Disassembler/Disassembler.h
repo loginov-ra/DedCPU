@@ -104,52 +104,20 @@ public:
 
             switch (cmd_code)
             {
-                case PUSH:
-                    fprintf(disassembled_, "push ");
-                    translateLongArgument();
-                    fprintf(disassembled_, "\n");
-                    break;
-
-                case POP:
-                    fprintf(disassembled_, "pop");
-                    break;
-
-                case ADD:
-                    fprintf(disassembled_, "add\n"); 
-                    break;
-
-                case MUL:
-                    fprintf(disassembled_, "mul\n");
-                    break;
-
-                case IN:
-                    fprintf(disassembled_, "in\n");
-                    break;
-
-                case OUT:
-                    fprintf(disassembled_, "out\n");
-                    break;
-
-                case END:
-                    fprintf(disassembled_, "end\n");
-                    break;
-                
-                case JMP:
-                    fprintf(disassembled_, "jmp %d\n", readint());
-                    break;
-
-                case JE:
-                    fprintf(disassembled_, "je %d\n", readint());
-                    break;
-
-                case JG:
-                    fprintf(disassembled_, "jg %d\n", readint());
-                    break;
-
-                case JGE:
-                    fprintf(disassembled_, "jge %d\n", readint());
-                    break;
-
+                #define DEF_CMD(NAME, CODE_S, LONG_S, CODE_B, LONG_B, LABELS, SHORTS, ACTION) \
+                    case CODE_B:                                                      \
+                        fprintf(disassembled_, #NAME);                                \
+                        for (size_t i = 0; i < LABELS + SHORTS; ++i)                  \
+                            fprintf(disassembled_, " %d", readint());                 \
+                        for (size_t i = 0; i < LONG_B; ++i)                           \
+                        {                                                             \
+                            fprintf(disassembled_, " ");                              \
+                            translateLongArgument();                                  \
+                        }                                                             \
+                        fprintf(disassembled_, "\n");                                 \
+                        break;
+                #include "../Commands.h"
+                #undef DEF_CMD
                 default:
                     ASSERT(false, "Unknown command presents! Aborting!");
                     break;

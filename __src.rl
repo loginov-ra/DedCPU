@@ -1,11 +1,13 @@
-in
-in
+in ax
+in bx
+push ax
+push bx
 add
 push 2
 mul
 out
-jmp 17
+jmp 39
 end
 push dx
 out
-jmp 16
+jmp 38

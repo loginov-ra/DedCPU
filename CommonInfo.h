@@ -1,17 +1,11 @@
 
 enum COMMANDS
 {
-    PUSH = 1,
-    POP  = 2,
-    ADD  = 3,
-    MUL  = 4,
-    IN   = 5,
-    OUT  = 6,
-    END  = 7,
-    JMP  = 8,
-    JE   = 9,
-    JG   = 10,
-    JGE  = 11 
+    #define DEF_CMD(NAME, CODE_S, LONG_S, CODE_B, LONG_B, LABELS, SHORTS, ACTION) \
+        CODE_B,
+    #include "Commands.h"
+    MAX_CMD
+    #undef DEF_CMD
 };
 
 #define DEF_REG(SRC_NAME, CODE_NAME) SRC_NAME,

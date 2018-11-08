@@ -64,6 +64,21 @@ private:
         return readint();
     }
 
+    int* getRegisterPtr()
+    {
+        int code = readint();
+        #define DEF_REG(SRC_NAME, CODE_NAME)   \
+            else if (code == SRC_NAME)         \
+            {                                  \
+                return &_##CODE_NAME;          \
+            }
+        if (false);
+        #include "../Registers.h"
+        #undef DEF_REG
+
+        return nullptr;
+    }
+
     int readLongArgument()
     {
         char type = readchar();
@@ -74,17 +89,12 @@ private:
         }
         else if (type == REGISTER)
         {
-            int code = readint();
-            #define DEF_REG(SRC_NAME, CODE_NAME)  \
-                else if (code == SRC_NAME)        \
-                {                                 \
-                    return _##CODE_NAME;          \
-                }
-            if (false);
-            #include "../Registers.h"
-            #undef DEF_REG 
+            int* reg = getRegisterPtr();
+            ASSERT(reg, "Unknown register code in file");
+            return *reg;
         }
-
+        
+        ASSERT(false, "Bad argument type provided");
         return -1;
     }
 
@@ -127,6 +137,7 @@ public:
         int new_value = 0;
         int top = 0, top_snd = 0; 
         int arg = 0;
+        int* ptr = nullptr;
 
         while (ip_ < code_size_)
         {
@@ -134,60 +145,13 @@ public:
 
             switch (cmd_code)
             {
-                case PUSH:
-                    S_PUSH(readLongArgument());
-                    break;
+                #define DEF_CMD(NAME, CODE_S, LONG_S, CODE_B, LONG_B, LABELS, SHORTS, ACTION) \
+                    case CODE_B:                                                              \
+                        ACTION                                                                \
+                        break;
 
-                case POP:
-                    S_POP;
-                    break;
-
-                case ADD:
-                    S_PUSH(S_POP + S_POP);
-                    break;
-
-                case MUL:
-                    S_PUSH(S_POP * S_POP);
-                    break;
-
-                case IN:
-                    new_value = 0;
-                    scanf("%d", &new_value);
-                    S_PUSH(new_value);
-                    break;
-
-                case OUT:
-                    printf("%d\n", S_POP);
-                    break;
-
-                case END:
-                    ip_ = code_size_;
-                    break;
-                
-                case JMP:
-                    ip_ = readArgument();
-                    break;
-
-                case JE:
-                    arg = readint();
-                    if (S_POP == S_POP)
-                        ip_ = arg;
-                    break;
-
-                case JG:
-                    arg = readint();
-                    top = S_POP, top_snd = S_POP;
-                    if (top > top_snd)
-                        ip_ = arg;
-                    break;
-
-                case JGE:
-                    arg = readint();
-                    top = S_POP, top_snd = S_POP;
-                    if (top >= top_snd)
-                        ip_ = arg;
-                    break;
-
+                #include "../Commands.h"
+                #undef DEF_CMD
                 default:
                     ASSERT(false, "Unknown command presents! Aborting!");
                     break;

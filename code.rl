@@ -1,6 +1,8 @@
 
-in
-in
+in ax
+in bx
+push ax
+push bx
 
 add
 push 2
