@@ -1,13 +1,20 @@
 in ax
-in bx
+push 1
+pop bx
+call 31
+push bx
+out
+end
+push ax
+push 1
+jge 91
 push ax
 push bx
-add
-push 2
 mul
-out
-jmp 39
-end
-push dx
-out
-jmp 38
+pop bx
+push 1
+push ax
+sub
+pop ax
+call 31
+ret

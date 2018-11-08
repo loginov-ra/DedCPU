@@ -4,7 +4,7 @@ in bx
 push ax
 push bx
 
-add
+sub
 push 2
 mul
 out

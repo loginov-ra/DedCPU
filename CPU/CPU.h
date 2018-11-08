@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <cstdio>
 #include <cstdlib>
+#include <cmath>
 #include <cstring>
 #include "../Stack.h"
 #include "../CommonInfo.h"
@@ -48,6 +49,7 @@ class CPU
 {
 private:
     Stack<int> stack_;
+    Stack<int> returns_;
     char* binary_code_;
     size_t code_size_;
     size_t ip_;
@@ -115,6 +117,7 @@ public:
  
     CPU(const char* exec_filename):
         stack_(),
+        returns_(),
         binary_code_(nullptr),
         code_size_(0),
         ip_(0)
@@ -158,7 +161,6 @@ public:
             }
         }
     }
-
 
     ~CPU()
     {

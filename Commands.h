@@ -42,12 +42,38 @@ DEF_CMD(out, OUT, 0, _OUT, 0, 0, 0, {
     printf("%d\n", S_POP);
 })
 
+DEF_CMD(sub, SUB, 0, _SUB, 0, 0, 0, {
+    top = S_POP;
+    top_snd = S_POP;
+    S_PUSH(top - top_snd);
+})
+
+DEF_CMD(div, DIV, 0, _DIV, 0, 0, 0, {
+    top = S_POP;
+    top_snd = S_POP;
+    S_PUSH(top / top_snd);
+})
+
+DEF_CMD(sqrt, SQRT, 0, _SQRT, 0, 0, 0, {
+    S_PUSH(sqrt(S_POP));
+})
+
 DEF_CMD(end, END, 0, _END, 0, 0, 0, {
     ip_ = code_size_;
 })
 
 DEF_CMD(jmp, JMP, 0, _JMP, 0, 1, 0, {
     ip_ = readArgument();
+})
+
+DEF_CMD(call, CALL, 0, _CALL, 0, 1, 0, {
+    arg = readArgument();
+    returns_.push(ip_);
+    ip_ = arg;
+})
+
+DEF_CMD(ret, RET, 0, _RET, 0, 0, 0, {
+    ip_ = stackPopAndDelete(returns_);
 })
 
 DEF_CMD(je, JE, 0, _JE, 0, 1, 0, {
