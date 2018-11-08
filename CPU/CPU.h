@@ -25,7 +25,8 @@
         return *reinterpret_cast<Type*>(binary_code_ + ip_copy); \
     }
 
-int stackPopAndDelete(Stack<int>& st)
+template <typename T>
+T stackPopAndDelete(Stack<T>& st)
 {
     int res = st.top();
     st.pop();
@@ -48,27 +49,27 @@ size_t getFileBytesNumber(const char* filename)
 class CPU
 {
 private:
-    Stack<int> stack_;
+    Stack<double> stack_;
     Stack<int> returns_;
     char* binary_code_;
     size_t code_size_;
     size_t ip_;
     
-    #define DEF_REG(SRC_NAME, CODE_NAME) int _##CODE_NAME;
+    #define DEF_REG(SRC_NAME, CODE_NAME) double _##CODE_NAME;
     #include "../Registers.h"
     #undef DEF_REG
 
     DEF_READER(char)
-    DEF_READER(int)
+    DEF_READER(double)
     
-    int readArgument()
+    double readArgument()
     {
-        return readint();
+        return readdouble();
     }
 
-    int* getRegisterPtr()
+    double* getRegisterPtr()
     {
-        int code = readint();
+        int code = static_cast<int>(readdouble());
         #define DEF_REG(SRC_NAME, CODE_NAME)   \
             else if (code == SRC_NAME)         \
             {                                  \
@@ -81,17 +82,17 @@ private:
         return nullptr;
     }
 
-    int readLongArgument()
+    double readLongArgument()
     {
         char type = readchar();
 
         if (type == NUMBER)
         {
-            return readint();
+            return readdouble();
         }
         else if (type == REGISTER)
         {
-            int* reg = getRegisterPtr();
+            double* reg = getRegisterPtr();
             ASSERT(reg, "Unknown register code in file");
             return *reg;
         }
@@ -104,6 +105,7 @@ public:
     bool ok() const
     {
         return stack_.ok();
+        return returns_.ok();
     }
 
     void dump(const char* reason) const
@@ -111,7 +113,8 @@ public:
         printf("This is the processor dump [%s]\n", reason);
         printf("Here is my memory stack\n");
         stack_.dump();
-        
+        printf("Here is my return stack\n");
+        returns_.dump(); 
         printf("Status: %s\n", ok() ? "OK" : "FAILURE");
     }
  
@@ -137,10 +140,10 @@ public:
     {
         FUNCTION_GUARD(CPU);
         ip_ = 0;
-        int new_value = 0;
-        int top = 0, top_snd = 0; 
-        int arg = 0;
-        int* ptr = nullptr;
+        double new_value = 0;
+        double top = 0, top_snd = 0; 
+        double arg = 0;
+        double* ptr = nullptr;
 
         while (ip_ < code_size_)
         {

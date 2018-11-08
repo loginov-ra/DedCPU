@@ -71,8 +71,8 @@ struct Fixup
     {
         ASSERT(file, "Wrong file to recover fixup in!\n");
         fseek(file, index_where_, SEEK_SET);
-        int place = static_cast<int>(labels[label_name_]);
-        fwrite(&place, sizeof(int), 1, file);
+        double place = static_cast<int>(labels[label_name_]);
+        fwrite(&place, sizeof(double), 1, file);
     }
 
     ~Fixup()
@@ -99,7 +99,7 @@ private:
     size_t n_written_;
     std::unordered_map<string_view, size_t> labels_;
     
-    bool parseRegister(char* buf, int* argval)
+    bool parseRegister(char* buf, double* argval)
     {
         #define DEF_REG(SRC_NAME, CODE_NAME)        \
             if (!strcmp(buf, #CODE_NAME))           \
@@ -113,15 +113,15 @@ private:
         return false;
     }
 
-	bool parseArgument(char* buf, int* argval)
+	bool parseArgument(char* buf, double* argval)
 	{
         char* end = 0;
-		*argval = strtol(buf, &end, 10);
+		*argval = strtod(buf, &end);
 
 		return *end == 0;
 	}
     
-    bool parseLongArgument(char* buf, char* type, int* argval)
+    bool parseLongArgument(char* buf, char* type, double* argval)
     {
         if (parseArgument(buf, argval))
         {
@@ -138,7 +138,7 @@ private:
     }
 
     //Returns number to jump to or creates a fixup
-    size_t parseArgumentLabel(char* buf, int* argval)
+    size_t parseArgumentLabel(char* buf, double* argval)
     {
         size_t length = strlen(buf);
         ASSERT(length > 0, "Empty label provided!\n");
@@ -158,25 +158,25 @@ private:
         }
     }
 	
-	void writeInt(int number)
+	void writeDouble(double number)
 	{
-		fwrite(&number, sizeof(int), 1, output_file_);
-	    n_written_ += sizeof(int);
+		fwrite(&number, sizeof(double), 1, output_file_);
+	    n_written_ += sizeof(double);
     }
-    
+
     void writeChar(char c)
     {
         fwrite(&c, sizeof(char), 1, output_file_);
         n_written_ += sizeof(char);
     }
     
-    void writeLongArgument(char type, int value)
+    void writeLongArgument(char type, double value)
     {
         writeChar(type);
-        writeInt(value);
+        writeDouble(value);
     }
 
-    bool procArg(bool is_long, char* argbuf, char* type, int* argval)
+    bool procArg(bool is_long, char* argbuf, char* type, double* argval)
     {
         fscanf(source_code_file_, "%s", argbuf);              
         if ( is_long && !parseLongArgument(argbuf, type, argval) ||
@@ -245,7 +245,7 @@ public:
             if (strlen(cmd_name) == 0)
                 continue;
 
-			int argval = 0;
+			double argval = 0;
 			char argbuf[MAX_ARG_LENGTH] = "";
             char type = 0; 
 
@@ -266,9 +266,9 @@ public:
                         size_t res = parseArgumentLabel(argbuf, &argval);          \
                                                                                    \
                         if (res == WRITTEN_CODE)                                   \
-                            writeInt(argval);                                      \
+                            writeDouble(argval);                                   \
                         else if (res == FIXUP_CREATED)                             \
-                            writeInt(0);                                           \
+                            writeDouble(0);                                        \
                         else if (res == UNKNOWN_ARG)                               \
                             ASSERT(false, "Unsupported argument format");          \
                     }                                                              \
@@ -277,7 +277,7 @@ public:
                     {                                                              \
                         if (!procArg(false, argbuf, &type, &argval))               \
                             return 1;                                              \
-                        writeInt(argval);                                          \
+                        writeDouble(argval);                                       \
                     }                                                              \
                 } 
 

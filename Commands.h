@@ -35,11 +35,11 @@ DEF_CMD(in, IN, 0, _IN, 1, 0, 0, {
     ASSERT(arg == REGISTER, "Not a register in in");
     ptr = getRegisterPtr();
     ASSERT(ptr, "Null pointer for register in in");
-    scanf("%d", ptr);
+    scanf("%lf", ptr);
 })
 
 DEF_CMD(out, OUT, 0, _OUT, 0, 0, 0, {
-    printf("%d\n", S_POP);
+    printf("%lf\n", S_POP);
 })
 
 DEF_CMD(sub, SUB, 0, _SUB, 0, 0, 0, {
@@ -63,7 +63,7 @@ DEF_CMD(end, END, 0, _END, 0, 0, 0, {
 })
 
 DEF_CMD(jmp, JMP, 0, _JMP, 0, 1, 0, {
-    ip_ = readArgument();
+    ip_ = static_cast<int>(readArgument());
 })
 
 DEF_CMD(call, CALL, 0, _CALL, 0, 1, 0, {
@@ -73,17 +73,17 @@ DEF_CMD(call, CALL, 0, _CALL, 0, 1, 0, {
 })
 
 DEF_CMD(ret, RET, 0, _RET, 0, 0, 0, {
-    ip_ = stackPopAndDelete(returns_);
+    ip_ = static_cast<int>(stackPopAndDelete(returns_));
 })
 
 DEF_CMD(je, JE, 0, _JE, 0, 1, 0, {
-    arg = readint();
-    if (S_POP == S_POP)
+    arg = static_cast<int>(readdouble());
+    if (fabsl(S_POP - S_POP) < 1e-5)
         ip_ = arg;
 })
 
 DEF_CMD(jg, JG, 0, _JG, 0, 1, 0, {
-    arg = readint();
+    arg = static_cast<int>(readdouble());
     top = S_POP;
     top_snd = S_POP;
     if (top > top_snd)
@@ -91,7 +91,7 @@ DEF_CMD(jg, JG, 0, _JG, 0, 1, 0, {
 })
 
 DEF_CMD(jge, JGE, 0, _JGE, 0, 1, 0, {
-    arg = readint();
+    arg = static_cast<int>(readdouble());
     top = S_POP;
     top_snd = S_POP;
     if (top >= top_snd)

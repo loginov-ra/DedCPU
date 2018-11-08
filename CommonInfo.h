@@ -25,5 +25,5 @@ enum ARGUMENT_TYPES
 struct LongArgument
 {
     char argument_type_;
-    int value_;
+    double value_;
 };

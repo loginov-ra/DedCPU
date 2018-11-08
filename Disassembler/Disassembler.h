@@ -44,11 +44,11 @@ private:
     size_t index_;
     
     DEF_READER(char)
-    DEF_READER(int)
-    
-    int readArgument()
+    DEF_READER(double)    
+
+    double readArgument()
     {
-        return readint();
+        return readdouble();
     }
     
     void translateLongArgument()
@@ -56,11 +56,11 @@ private:
         char type = readchar();
         if (type == NUMBER)
         {
-            fprintf(disassembled_, "%d", readint());
+            fprintf(disassembled_, "%g", readdouble());
         }
         else if (type == REGISTER)
         {
-            int code = readint();
+            int code = static_cast<int>(readdouble());
             #define DEF_REG(SRC_NAME, CODE_NAME)           \
                 else if (code == SRC_NAME)                 \
                 {                                          \
@@ -96,7 +96,7 @@ public:
     void disassemble()
     {
         index_ = 0;
-        int new_value = 0;
+        double new_value = 0;
         
         while (index_ < code_size_)
         {
@@ -108,7 +108,7 @@ public:
                     case CODE_B:                                                      \
                         fprintf(disassembled_, #NAME);                                \
                         for (size_t i = 0; i < LABELS + SHORTS; ++i)                  \
-                            fprintf(disassembled_, " %d", readint());                 \
+                            fprintf(disassembled_, " %g", readdouble());              \
                         for (size_t i = 0; i < LONG_B; ++i)                           \
                         {                                                             \
                             fprintf(disassembled_, " ");                              \
