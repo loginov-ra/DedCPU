@@ -13,6 +13,6 @@ jmp :lol
 end
 
 :lol
-push 3
+push dx
 out
 jmp :kek

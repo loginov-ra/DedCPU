@@ -1,4 +1,3 @@
-
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -6,7 +5,7 @@
 #include <cstdlib>
 #include <cstring>
 #include "../Stack.h"
-#include "../CommandCodes.h"
+#include "../CommonInfo.h"
 
 #define ASSERT(COND, MSG)                                       \
     if(!(COND))                                                 \
@@ -53,12 +52,40 @@ private:
     size_t code_size_;
     size_t ip_;
     
+    #define DEF_REG(SRC_NAME, CODE_NAME) int _##CODE_NAME;
+    #include "../Registers.h"
+    #undef DEF_REG
+
     DEF_READER(char)
     DEF_READER(int)
     
     int readArgument()
     {
         return readint();
+    }
+
+    int readLongArgument()
+    {
+        char type = readchar();
+
+        if (type == NUMBER)
+        {
+            return readint();
+        }
+        else if (type == REGISTER)
+        {
+            int code = readint();
+            #define DEF_REG(SRC_NAME, CODE_NAME)  \
+                else if (code == SRC_NAME)        \
+                {                                 \
+                    return _##CODE_NAME;          \
+                }
+            if (false);
+            #include "../Registers.h"
+            #undef DEF_REG 
+        }
+
+        return -1;
     }
 
 public:
@@ -108,7 +135,7 @@ public:
             switch (cmd_code)
             {
                 case PUSH:
-                    S_PUSH(readArgument());
+                    S_PUSH(readLongArgument());
                     break;
 
                 case POP:

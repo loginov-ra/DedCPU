@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cassert>
-#include "../CommandCodes.h"
+#include "../CommonInfo.h"
 
 #define ASSERT(COND, MSG)                                       \
     if(!(COND))                                                 \
@@ -50,6 +50,27 @@ private:
     {
         return readint();
     }
+    
+    void translateLongArgument()
+    {
+        char type = readchar();
+        if (type == NUMBER)
+        {
+            fprintf(disassembled_, "%d", readint());
+        }
+        else if (type == REGISTER)
+        {
+            int code = readint();
+            #define DEF_REG(SRC_NAME, CODE_NAME)           \
+                else if (code == SRC_NAME)                 \
+                {                                          \
+                    fprintf(disassembled_, #CODE_NAME);    \
+                }
+            if (false);
+            #include "../Registers.h"
+            #undef DEF_REG
+        }
+    }
 
 public:
     Disassembler(const char* exec_filename, const char* disassembled_filename):
@@ -84,7 +105,9 @@ public:
             switch (cmd_code)
             {
                 case PUSH:
-                    fprintf(disassembled_, "push %d\n", readint());
+                    fprintf(disassembled_, "push ");
+                    translateLongArgument();
+                    fprintf(disassembled_, "\n");
                     break;
 
                 case POP:

@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <experimental/string_view>
 #include "../Stack.h"
-#include "../CommandCodes.h"
+#include "../CommonInfo.h"
 
 using std::experimental::string_view;
 
@@ -17,13 +17,6 @@ using std::experimental::string_view;
         fprintf(stderr, "Function: %s\n", __PRETTY_FUNCTION__); \
         fprintf(stderr, "Line: %d\n", __LINE__);                \
         assert(COND);                                           \
-    }
-
-#define PROC_ARG                                          \
-    if (!readArgument(argbuf, &argval))                   \
-    {                                                     \
-        printf("Read argument of unsupported format!\n"); \
-        return 1;                                         \
     }
 
 const size_t MAX_LINE_LENGTH = 256;
@@ -105,21 +98,47 @@ private:
     Stack<Fixup> fixups_;
     size_t n_written_;
     std::unordered_map<string_view, size_t> labels_;
+    
+    bool parseRegister(char* buf, int* argval)
+    {
+        #define DEF_REG(SRC_NAME, CODE_NAME)        \
+            if (!strcmp(buf, #CODE_NAME))           \
+            {                                       \
+                *argval = SRC_NAME;                 \
+                return true;                        \
+            }
+        #include "../Registers.h"
+        #undef DEF_REG
 
-	bool readArgument(char* buf, int* argval, bool need_scanf = true)
+        return false;
+    }
+
+	bool parseArgument(char* buf, int* argval)
 	{
-        if (need_scanf)
-            fscanf(source_code_file_, "%s", buf);
-		
         char* end = 0;
 		*argval = strtol(buf, &end, 10);
-        printf("Checking argument: %s\n", buf);    
 
 		return *end == 0;
 	}
     
+    bool parseLongArgument(char* buf, char* type, int* argval)
+    {
+        if (parseArgument(buf, argval))
+        {
+            *type = NUMBER;
+            return true;
+        }
+        else if (parseRegister(buf, argval))
+        {
+            *type = REGISTER;
+            return true;
+        }
+        else
+            return false;
+    }
+
     //Returns number to jump to or creates a fixup
-    size_t readArgumentLabel(char* buf, int* argval)
+    size_t parseArgumentLabel(char* buf, int* argval)
     {
         size_t length = strlen(buf);
         ASSERT(length > 0, "Empty label provided!\n");
@@ -132,7 +151,7 @@ private:
         }
         else
         {
-            if (readArgument(buf, argval, false))
+            if (parseArgument(buf, argval))
                 return WRITTEN_CODE;
             else
                 return UNKNOWN_ARG;
@@ -149,6 +168,28 @@ private:
     {
         fwrite(&c, sizeof(char), 1, output_file_);
         n_written_ += sizeof(char);
+    }
+    
+    void writeLongArgument(char type, int value)
+    {
+        writeChar(type);
+        writeInt(value);
+    }
+
+    bool procArg(bool is_long, char* argbuf, char* type, int* argval)
+    {
+        fscanf(source_code_file_, "%s", argbuf);              
+        if ( is_long && !parseLongArgument(argbuf, type, argval) ||
+            !is_long &&     !parseArgument(argbuf, argval))                  
+        {
+            if (is_long)            
+                printf("Long ");
+            printf("Argument %s\n", argbuf);     
+            printf("Read argument of unsupported format!\n"); 
+            return false;                                         
+        }
+
+        return true;
     }
 
 public:
@@ -206,13 +247,15 @@ public:
 
 			int argval = 0;
 			char argbuf[MAX_ARG_LENGTH] = "";
-       
+            char type = 0; 
+
             if (false);
             else if (!strcmp(cmd_name, "push"))
             {
-     			PROC_ARG
+                if (!procArg(true, argbuf, &type, &argval))
+                    return 1;
                 writeChar(PUSH);
-                writeInt(argval);
+                writeLongArgument(type, argval);
             }
             else if (!strcmp(cmd_name, "pop"))
             {
@@ -242,7 +285,7 @@ public:
             {
                 writeChar(JMP);
                 fscanf(source_code_file_, "%s", argbuf);
-                size_t res = readArgumentLabel(argbuf, &argval);
+                size_t res = parseArgumentLabel(argbuf, &argval);
 
                 switch (res)
                 {

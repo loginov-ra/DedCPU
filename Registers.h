@@ -1,0 +1,9 @@
+
+DEF_REG(AX, ax)
+DEF_REG(BX, bx)
+DEF_REG(CX, cx)
+DEF_REG(DX, dx)
+DEF_REG(R1, r1)
+DEF_REG(R2, r2)
+DEF_REG(R3, r3)
+DEF_REG(R4, r4)

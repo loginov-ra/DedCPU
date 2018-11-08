@@ -4,8 +4,8 @@ add
 push 2
 mul
 out
-jmp 16
+jmp 17
 end
-push 3
+push dx
 out
-jmp 15
+jmp 16
